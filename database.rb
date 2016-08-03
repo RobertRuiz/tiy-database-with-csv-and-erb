@@ -149,18 +149,18 @@ class Menu
     end
   end
 
-  # For each position (Instructor, Campus Director, etc)
-  # The minimum salary.
-  # The maximum salary.
-  # The average salary.
-  # The number of employees for each position
-  # The names of each employee in that position
-
   def cancel_search
     puts "Hope you had fun, come back REAL soon you hear"
     exit
   end
 end
+
+# For each position (Instructor, Campus Director, etc)
+# The minimum salary.
+# The maximum salary.
+# The average salary.
+# The number of employees for each position
+# The names of each employee in that position
 
 menu = Menu.new()
 menu.prompt
