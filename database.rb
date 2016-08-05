@@ -1,8 +1,8 @@
 require "csv"
-require 'erb'
+require "erb"
 
-class Peep
-  attr_accessor :name, :phone, :address, :position , :salary, :slack, :github
+class People
+  attr_accessor :name, :phone, :address, :position, :salary, :github
 
   def initialize(name)
     @name = name
@@ -11,36 +11,34 @@ end
 
 class Menu
   def initialize
-    @peep = []
+    @people = []
 
     CSV.foreach("employees.csv", { headers: true, header_converters: :symbol }) do |employee|
-      person = peep.new(employee)
+      person = People.new(employee)
 
       person.name     = employee[:name]
       person.phone    = employee[:phone]
       person.address  = employee[:address]
       person.position = employee[:position]
       person.salary   = employee[:salary]
-      person.slack    = employee[:slack]
       person.github   = employee[:github]
 
-      @peep << person
+      @people << person
     end
   end
 
   def prompt
     loop do
-      puts "Please select the corresponding letter (A, S, R, C or D) as follows:"
+      puts "A for Add a person"
+      puts "S for Search for a person"
+      puts "D for Delete a person"
+      puts "R for Employee Report"
+      puts "E for Exit"
 
-      puts "A: Add a person"
-      puts "S: Search for a person"
-      puts "D: Delete a person"
-      puts "R: Report of Employees"
-      puts "C: Cancel search"
+      choice = gets.chomp
+      break if choice == "E"
 
-      chosen = gets.chomp
-
-      case chosen
+      case choice
       when "A"
         add_person
       when "S"
@@ -49,118 +47,105 @@ class Menu
         delete_person
       when "R"
         report
-      when "C"
-        cancel_search
-        exit
       else
-        puts "Selections are limited to A, S, R, C or D only"
+        puts "These are your only options"
       end
     end
   end
 
   def write
     CSV.open("employees.csv", "w") do |csv|
-      csv << %w{name phone address position salary slack github}
-      @peep.each do |person|
-        csv << [person.name, person.phone, person.address, person.position, person.salary, person.slack, person.github]
+      csv << %w{name phone address position salary github}
+      @people.each do |person|
+        csv << [person.name, person.phone, person.address, person.position,person.salary, person.github]
       end
     end
   end
 
-  PREFIX = "Dear humanoid please provide the"
-
   def add_person
-    puts "#{PREFIX} name"
+    puts "Enter employee first and last name"
     name = gets.chomp
 
-    person = peep.new(name)
+    person = People.new(name)
 
-    puts "#{PREFIX} phone"
-    person.phone = gets.chomp
+    puts "Enter employee phone number"
+    phone = gets.chomp
 
-    puts "#{PREFIX} address"
-    person.address = gets.chomp
+    puts "Enter employee address"
+    address = gets.chomp
 
-    puts "#{PREFIX} position"
-    person.position = gets.chomp
+    puts "Employee's position"
+    position = gets.chomp
 
-    puts "#{PREFIX} salary"
-    person.salary = gets.chomp
+    puts "Employee's salary"
+    salary = gets.chomp
 
-    puts "#{PREFIX} slack"
-    person.slack = gets.chomp
+    puts "Employee's github account"
+    github = gets.chomp
 
-    puts "#{PREFIX} github"
-    person.github = gets.chomp
-
-    @peep << person
+    @people << person
 
     write
-    puts "#{@peep.last.name} has been added, thank you"
+    puts "#{@people [-1].name} has been added to your database."
   end
 
   def found(person)
-    puts "That is:
-      #{person.name}
-      #{person.phone}
-      #{person.address}
-      #{person.position}
-      #{person.salary}
-      #{person.slack}
-      #{person.github}"
+    puts "Employee is listed:
+          #{person.name}
+          #{person.phone}
+          #{person.address}
+          #{person.position}
+          #{person.salary}
+          #{person.github}"
   end
 
   def search_person
-    puts "Who are you looking for ?"
+    puts "Whom is it for which you look?"
     search_person = gets.chomp
-
-    matching_person = @peep.find { |person| person.name == search_person }
+    matching_person = @people.find { |person| person.name == search_person }
     if !matching_person.nil?
       found(matching_person)
-    else
-      puts "Unable to find #{search_person}, they are officially M.I.A."
+    else puts "#{search_person}not found"
     end
   end
 
   def delete_person
-    puts "Who would you like to delete/zap/86?"
-    delete_person = gets.chomp
-
-    matching_person = @peep.find { |person| person.name == delete_person }
-
-    for person in @peep
+    puts "Delete which Employee? "
+    delete_employee = gets.chomp
+    matching_person = @people.find { |person| person.name == delete_person }
+    for person in @people
       if !matching_person.nil?
-        @peep.delete(matching_person)
+        @people.delete(matching_person)
         write
-        puts "#{delete_person}'s name and information has been removed from our employees database"
+        puts "#{person.name} has been deleted."
         break
       else
-        puts "Unable to delete #{delete_person}, they may have been already deleted by someone else"
+        puts "Person not found"
       end
     end
   end
 
   def report
-    File.open("report.html", "w") do |file|
-      output_people = @people
+    puts "An employee report is being created for you now"
 
-      file.puts people_to_html(output_people)
-      puts "Creating report of employees now"
+    # Read the template.html.erb and shove it into a variable
+    # called html_template_from_disk.
+    html_template_from_disk = File.read("template.html.erb")
+
+    # Make a new ERB object and give it the `String` from html_template_from_disk
+    erb_template = ERB.new(html_template_from_disk)
+
+    positions = []
+
+    # Do the "mail merge" like `magic`
+    output = erb_template.result(binding)
+
+    # Write that out to a report.html file
+    File.open("report.html", "w") do |file|
+      file.puts output
     end
   end
-
-  def cancel_search
-    puts "Hope you had fun, come back REAL soon you hear"
-    exit
-  end
 end
-
-# For each position (Instructor, Campus Director, etc)
-# The minimum salary.
-# The maximum salary.
-# The average salary.
-# The number of employees for each position
-# The names of each employee in that position
 
 menu = Menu.new()
 menu.prompt

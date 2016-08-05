@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <style media="screen">
+    ul {
+      list-style: none;
+    }
+
+    li {
+      font-size: 4em;
+    }
+
+    .name {
+      color: red;
+    }
+
+    ul {
+      border-bottom: 1px solid black;
+    }
+  </style>
+  <body>
+    People:
+    <% output_people.each do |person| %>
+    <ul>
+      <li class="name"><%= person.name %></li>
+      <li><%= person.position %></li>
+      <li><%= person.salary %></li>
+      <li><%= person.github_account %></li>
+      <li><%= person.slack_account %></li>
+    </ul>
+    <% end %>
+  </body>
+</html>
